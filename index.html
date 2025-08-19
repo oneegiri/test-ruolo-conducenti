@@ -3744,50 +3744,66 @@
         }
 
         // Load the current question
-        function loadQuestion() {
-            const exam = examData[currentExam];
-            const topic = exam.topics[currentQuestionIndex];
-            const options = exam.questions.slice(currentQuestionIndex * 3, currentQuestionIndex * 3 + 3);
+    function loadQuestion() {
+        const exam = examData[currentExam];
+        const topic = exam.topics[currentQuestionIndex];
+        const options = exam.questions.slice(currentQuestionIndex * 3, currentQuestionIndex * 3 + 3);
+        const correctAnswerIndex = parseInt(exam.answers[currentQuestionIndex]) - 1;
 
-            // Update UI
-            topicElement.textContent = topic;
-            questionNumber.textContent = `Domanda ${currentQuestionIndex + 1} di ${exam.topics.length}`;
+        // Update UI
+        topicElement.textContent = topic;
+        questionNumber.textContent = `Domanda ${currentQuestionIndex + 1} di ${exam.topics.length}`;
 
-            // Update progress bar
-            const progress = ((currentQuestionIndex + 1) / exam.topics.length) * 100;
-            progressBar.style.width = `${progress}%`;
+        // Update progress bar
+        const progress = ((currentQuestionIndex + 1) / exam.topics.length) * 100;
+        progressBar.style.width = `${progress}%`;
 
-            // Clear previous options
-            optionsContainer.innerHTML = '';
+        // Clear previous options
+        optionsContainer.innerHTML = '';
 
-            // Create new options
-            options.forEach((optionText, index) => {
-                const optionElement = document.createElement('div');
-                optionElement.className = 'option';
-                if (userAnswers[currentQuestionIndex] === index) {
-                    optionElement.classList.add('selected');
-                }
-
-                optionElement.innerHTML = `
-                    <div class="option-number">${index + 1}</div>
-                    <div class="option-text">${optionText}</div>
-                `;
-
-                optionElement.addEventListener('click', () => selectOption(index));
-                optionsContainer.appendChild(optionElement);
-            });
-
-            // Update navigation buttons
-            prevBtn.disabled = currentQuestionIndex === 0;
-
-            if (currentQuestionIndex === exam.topics.length - 1) {
-                nextBtn.classList.add('hidden');
-                submitBtn.classList.remove('hidden');
-            } else {
-                nextBtn.classList.remove('hidden');
-                submitBtn.classList.add('hidden');
+        // Create new options
+        options.forEach((optionText, index) => {
+            const optionElement = document.createElement('div');
+            optionElement.className = 'option';
+            
+            // Add selected class if this option was selected
+            if (userAnswers[currentQuestionIndex] === index) {
+                optionElement.classList.add('selected');
             }
+            
+            // Add correct/incorrect classes if reveal answers is enabled
+            if (revealAnswers) {
+                if (index === correctAnswerIndex) {
+                    optionElement.classList.add('correct');
+                } else if (userAnswers[currentQuestionIndex] === index && index !== correctAnswerIndex) {
+                    optionElement.classList.add('incorrect');
+                }
+            }
+
+            optionElement.innerHTML = `
+                <div class="option-number">${index + 1}</div>
+                <div class="option-text">${optionText}</div>
+            `;
+
+            // Only allow selection if reveal answers is disabled
+            if (!revealAnswers) {
+                optionElement.addEventListener('click', () => selectOption(index));
+            }
+            
+            optionsContainer.appendChild(optionElement);
+        });
+
+        // Update navigation buttons
+        prevBtn.disabled = currentQuestionIndex === 0;
+
+        if (currentQuestionIndex === exam.topics.length - 1) {
+            nextBtn.classList.add('hidden');
+            submitBtn.classList.remove('hidden');
+        } else {
+            nextBtn.classList.remove('hidden');
+            submitBtn.classList.add('hidden');
         }
+    }
 
         // Select an option
         function selectOption(optionIndex) {
