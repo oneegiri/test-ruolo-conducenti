@@ -3660,30 +3660,47 @@
 
 
         // DOM Elements
-        const examSelect = document.getElementById('exam-select');
-        const startBtn = document.getElementById('start-exam');
-        const resetBtn = document.getElementById('reset-exam');
-        const questionScreen = document.getElementById('question-screen');
-        const resultsScreen = document.getElementById('results-screen');
-        const topicElement = document.getElementById('topic');
-        const optionsContainer = document.getElementById('options');
-        const questionNumber = document.getElementById('question-number');
-        const progressBar = document.getElementById('progress-bar');
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const submitBtn = document.getElementById('submit-btn');
-        const finalScore = document.getElementById('final-score');
-        const resultText = document.getElementById('result-text');
-        const incorrectAnswers = document.getElementById('incorrect-answers');
-        const restartBtn = document.getElementById('restart-btn');
-        const timerElement = document.getElementById('time');
+    const examSelect = document.getElementById('exam-select');
+    const startBtn = document.getElementById('start-exam');
+    const resetBtn = document.getElementById('reset-exam');
+    const questionScreen = document.getElementById('question-screen');
+    const resultsScreen = document.getElementById('results-screen');
+    const topicElement = document.getElementById('topic');
+    const optionsContainer = document.getElementById('options');
+    const questionNumber = document.getElementById('question-number');
+    const progressBar = document.getElementById('progress-bar');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const finalScore = document.getElementById('final-score');
+    const resultText = document.getElementById('result-text');
+    const incorrectAnswers = document.getElementById('incorrect-answers');
+    const restartBtn = document.getElementById('restart-btn');
+    const timerElement = document.getElementById('time');
+    
+    // Add reveal answers checkbox (create it dynamically)
+    const revealAnswersCheckbox = document.createElement('input');
+    revealAnswersCheckbox.type = 'checkbox';
+    revealAnswersCheckbox.id = 'reveal-answers';
+    const revealAnswersLabel = document.createElement('label');
+    revealAnswersLabel.htmlFor = 'reveal-answers';
+    revealAnswersLabel.textContent = ' Mostra risposte corrette';
+    
+    const revealContainer = document.createElement('div');
+    revealContainer.className = 'control-group';
+    revealContainer.appendChild(revealAnswersCheckbox);
+    revealContainer.appendChild(revealAnswersLabel);
+    
+    // Add the checkbox to exam controls
+    document.querySelector('.exam-controls').appendChild(revealContainer);
 
-        // Exam state
-        let currentExam = null;
-        let currentQuestionIndex = 0;
-        let userAnswers = [];
-        let examStartTime = null;
-        let timerInterval = null;
+    // Exam state
+    let currentExam = null;
+    let currentQuestionIndex = 0;
+    let userAnswers = [];
+    let examStartTime = null;
+    let timerInterval = null;
+    let revealAnswers = false;
 
         // Initialize the exam selector
         function initExamSelector() {
@@ -3705,22 +3722,23 @@
         function startExam() {
             const examCode = examSelect.value;
             if (!examCode) return;
-
+    
             currentExam = examCode;
             currentQuestionIndex = 0;
             userAnswers = new Array(examData[examCode].topics.length).fill(null);
-
+            revealAnswers = revealAnswersCheckbox.checked; // Get the checkbox state
+    
             // Reset UI
             questionScreen.classList.remove('hidden');
             resultsScreen.classList.add('hidden');
             submitBtn.classList.add('hidden');
             prevBtn.disabled = true;
             nextBtn.disabled = true;
-
+    
             // Start timer
             examStartTime = new Date();
             startTimer();
-
+    
             // Load first question
             loadQuestion();
         }
@@ -3892,13 +3910,21 @@
             timerElement.textContent = '00:00';
         }
 
-        // Event listeners
+        // Event listeners - Add change listener for the checkbox
         startBtn.addEventListener('click', startExam);
         resetBtn.addEventListener('click', resetExam);
         nextBtn.addEventListener('click', nextQuestion);
         prevBtn.addEventListener('click', prevQuestion);
         submitBtn.addEventListener('click', submitExam);
         restartBtn.addEventListener('click', resetExam);
+        
+        // Update reveal answers state when checkbox changes
+        revealAnswersCheckbox.addEventListener('change', function() {
+            revealAnswers = this.checked;
+            if (currentExam) {
+                loadQuestion(); // Reload current question with new state
+            }
+        });
 
         // Initialize the application
         initExamSelector()
